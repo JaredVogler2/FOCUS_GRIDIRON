@@ -119,7 +119,7 @@ class SqlServerSource:
         except ImportError as exc:
             raise RuntimeError("Install company-approved pyodbc driver for internal SQL mode.") from exc
 
-        # The work-side account MUST have SELECT on these three governed
+        # The work-side account MUST have SELECT on these four governed
         # projections only; no user-controlled identifiers or dynamic SQL.
         with pyodbc.connect(conn_str, timeout=15, autocommit=True) as connection:
             def read(sql: str):
@@ -132,10 +132,54 @@ class SqlServerSource:
             teams = read("SELECT id, name, short, color, accent, motto FROM gridiron.vw_Teams")
             players = read("SELECT id, team_id, alias, number, opted_in, eligible, specialty, is_synthetic FROM gridiron.vw_Players")
             metrics = read("SELECT player_id, week, quality, efficiency, flow, teamwork, records, confidence, exposure_minutes, evidence_status, source_receipt FROM gridiron.vw_WeeklyMetrics")
+            receipts = read("SELECT player_id, week, category, measure_key, numerator, denominator, score, weight, source_family FROM gridiron.vw_WeeklyEvidence")
 
-        if not teams or not players or not metrics:
-            raise RuntimeError("Approved source lacks team, player or metric coverage; refusing synthetic fallback.")
-        return Snapshot(tuple(teams), tuple(players), tuple(metrics), "SQLSERVER")
+        if not teams or not players or not metrics or not receipts:
+            raise RuntimeError("Approved source lacks team, player, metric or evidence coverage; no fixture fallback.")
+        from .evidence import METRIC_CATALOG, derived_category_score
+        index = {}
+        for m in metrics:
+            key = (m["player_id"], int(m["week"]))
+            if key in index:
+                raise RuntimeError("Duplicate weekly metric receipt.")
+            index[key] = dict(m, evidence={})
+        seen = set()
+        for raw in receipts:
+            key = (raw["player_id"], int(raw["week"]))
+            category, metric_key = raw["category"], raw["measure_key"]
+            if key not in index or category not in METRIC_CATALOG:
+                raise RuntimeError("Orphan or unknown evidence category.")
+            expected = next((item for item in METRIC_CATALOG[category]["measures"]
+                             if item[0] == metric_key), None)
+            unique = (*key, category, metric_key)
+            if expected is None or unique in seen:
+                raise RuntimeError("Unexpected or duplicate source measure.")
+            seen.add(unique)
+            n, d = float(raw["numerator"]), float(raw["denominator"])
+            if n < 0 or d <= 0 or n > d:
+                raise RuntimeError("Invalid raw source fraction.")
+            score, weight = float(raw["score"]), float(raw["weight"])
+            if abs(score - round(100*n/d, 2)) > .015 or abs(weight-expected[2]) > .00001:
+                raise RuntimeError("Measure score or weight does not reconcile to source counts.")
+            index[key]["evidence"].setdefault(category, []).append(dict(
+                key=metric_key, label=expected[1], numerator=n, denominator=d,
+                numerator_label=expected[3], denominator_label=expected[4],
+                unit="minutes" if metric_key == "earned_effort" else "events",
+                score=score, weight=weight,
+                weighted_points=round(score*weight, 4),
+                source_family=str(raw["source_family"]),
+                normalization="min(100, 100 × numerator ÷ denominator)",
+                is_synthetic=False,
+            ))
+        for metric in index.values():
+            for category, spec in METRIC_CATALOG.items():
+                values = metric["evidence"].get(category, [])
+                if len(values) != len(spec["measures"]):
+                    raise RuntimeError("Missing governed evidence records.")
+                calculated = derived_category_score(values)
+                if calculated is None or abs(calculated - float(metric[category])) > .015:
+                    raise RuntimeError("Metric does not reconcile to its governed source receipts.")
+        return Snapshot(tuple(teams), tuple(players), tuple(index.values()), "SQLSERVER")
 
 
 def selected_source() -> LeagueSource:
