@@ -17,6 +17,23 @@ A six-team American-football league driven by *invented* manufacturing performan
 - 100% deterministic fixture source and stateless precomputed game projections; works on Vercel's ephemeral serverless compute without writing local state.
 - Separate data-provider contract and documented SQL Server input views for eventual **approved company-only** source replacement.
 
+## Transparent player cards and team cards
+
+The original five horizontal **player-rating bars** remain visible when a player card opens. Tap a bar (for example **Teamwork**) to expand the exact metric inputs responsible for its score: synthetic verified handoffs and qualified support, counts, ratios, measure weights and category contribution. Each detail links back to the current week's fictional evidence receipt; no values are invented at render time.
+
+Every team now has a **TEAM DATA DNA** card with overall rating, league OVR rank, offensive and defensive position-fit, roster coverage, all five aggregated manufacturing-based attributes, underlying pooled and mean synthetic counts, a breakdown of every rated teammate and their category contributions. Drill-down hierarchy: **team OVR → weighted category → evidence measure → contributing players → their source receipts**.
+
+The dashboard now uses an **aviation-inspired navy, cobalt blue, steel-gray and white palette**, while retaining the high-visibility individual team colors on the football field. This is a visual inspiration, not an official Boeing-branded or endorsed product.
+
+The code driving this feature lives in `gridiron/evidence.py`, `gridiron/cards.py`, `static/cards.js`, and `static/cards.css`, and the source contract is documented in [docs/DATA_CONTRACT.md](docs/DATA_CONTRACT.md). Relevant endpoints:
+
+- `GET /api/attributes` — the five categories, measure descriptions and scoring weights.
+- `GET /api/players/{id}?week=1` — player OVR, five evidence-backed attribute scores, raw synthetic receipts, and position weights.
+- `GET /api/teams/{id}/card?week=1` — complete team card and the player/evidence hierarchy.
+- `GET /api/teams/{id}?week=1` — same team card alongside starting lineups and reserves.
+
+**Important:** This demonstration's underlying raw counts are fictional, even though the score calculations genuinely use those counts. Company SQL Server evidence cannot be connected in a public Vercel deployment. The proposed `gridiron.vw_WeeklyEvidence` and three existing input views are only future internal/private integration contracts, with approval, identity/consent mapping and SSO required.
+
 ## Run locally
 
 Python 3.12+ recommended.
