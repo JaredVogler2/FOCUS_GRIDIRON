@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import lru_cache
 from .ratings import rate_week, team_lineup
+from .cards import team_card as build_team_card
 from .sim import game_sim
 from .sources import Snapshot, selected_source
 
@@ -151,21 +152,57 @@ class League:
         week = max(1, min(12, week))
         league_games = [g for g in self.games if g["week"] <= min(10, week)]
         view_games = [brief(g) for g in self.games if g["week"] == week]
+        team_cards = self.rank_team_cards(week)
         return dict(mode=self.source.origin, week=week, weeks=12, regular_season_weeks=10,
                     teams=self.teams, standings=standings(league_games, self.teams),
+                    team_cards=[dict(team_id=c["team_id"], overall=c["overall"],
+                                     rank=c["rank"], coverage_pct=c["roster"]["coverage_pct"],
+                                     offense_fit=c["offense"]["average_fit"],
+                                     defense_fit=c["defense"]["average_fit"])
+                                for c in team_cards],
                     games=view_games, mvp=awards(self.source, league_games, min(week,10))[:12],
                     champion=self.champion if week == 12 else None,
                     playoff_seed=self.playoff_seed if week >= 11 else None,
                     counts=dict(teams=len(self.teams), athletes=len(self.players),
                                 games=len(self.games)), version="gridiron-0.1")
 
+    def rank_team_cards(self, week: int):
+        week = max(1, min(12, week))
+        cards = [
+            build_team_card(self.source, team["id"], week, self.week_ratings[week],
+                            self.lineups[week][team["id"]])
+            for team in self.teams
+        ]
+        cards.sort(key=lambda c: (c["overall"] is None,
+                                  -(c["overall"] or 0), c["team_id"]))
+        for position, card in enumerate(cards, 1):
+            card["rank"] = position
+        return cards
+
+    def team_card(self, team_id: str, week: int):
+        if team_id not in self.team_by_id:
+            return None
+        week = max(1, min(12, week))
+        card = next(card for card in self.rank_team_cards(week)
+                    if card["team_id"] == team_id)
+        games = [g for g in self.games if g["week"] <= min(10, week)]
+        card["season_record"] = next(row for row in standings(games, self.teams)
+                                     if row["team_id"] == team_id)
+        card["history"] = [
+            dict(week=w,
+                 overall=build_team_card(self.source, team_id, w, self.week_ratings[w],
+                                         self.lineups[w][team_id])["overall"])
+            for w in range(1, min(week, 10)+1)
+        ]
+        return card
+
     def team(self, team_id: str, week: int):
         t = self.team_by_id.get(team_id)
         if t is None:
             return None
         week = max(1, min(12, week))
-        p = [self.player_by_id[x["player_id"]] for x in self.lineups[week][team_id]["offense"]]
         return dict(**t, week=week, lineup=self.lineups[week][team_id],
+                    card=self.team_card(team_id, week),
                     top_players=sorted(
                         [dict(id=x["id"], alias=x["alias"], number=x["number"],
                               **self.week_ratings[week][x["id"]]) for x in self.players if x["team_id"] == team_id
