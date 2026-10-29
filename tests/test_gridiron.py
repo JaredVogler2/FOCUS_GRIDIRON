@@ -256,3 +256,20 @@ def test_team_rankings_and_new_evidence_endpoints():
     assert client.get("/static/cards.css").status_code == 200
     html=client.get("/").get_data(as_text=True)
     assert "cards.js" in html and "cards.css" in html
+
+
+def test_original_player_card_bars_expand_into_true_source_receipts():
+    """The classic five-bar player card remains the default visible layout."""
+    from pathlib import Path
+    script = (Path(__file__).resolve().parents[1] / "static" / "cards.js").read_text()
+    sheet = (Path(__file__).resolve().parents[1] / "static" / "cards.css").read_text()
+    assert 'const keys = ["quality","efficiency","flow","teamwork","records"]' in script
+    assert 'class="original-metric-item"' in script
+    assert 'class="original-metric-line"' in script
+    assert 'class="original-metric-track"' in script
+    assert 'TAP ANY SCORE TO SEE ITS EVIDENCE' in script
+    assert "a.measures.map(measure)" in script
+    assert "a.receipt||r.source_receipt" in script
+    assert 'class="original-evidence-detail"' in script
+    assert 'class="original-metric-item" open' not in script
+    assert ".original-metric-item[open]" in sheet
