@@ -94,7 +94,7 @@ function teamTiles() {
   return head("Choose your team","Every franchise draws its starting eleven exclusively from its own opt-in production teammates. Ratings update weekly; the best positional fit gets the start.")+
   `<div class="team-grid">${state.league.teams.map(t=>`<button class="team-tile" data-team="${esc(t.id)}" style="--tile-color:${esc(t.color)}">
    ${mark(t)}<strong>${esc(t.name)}</strong><p>${esc(t.motto)}</p>
-   <div class="tile-foot"><span>30 FICTIONAL TEAMMATES</span><span>VIEW ROSTER →</span></div></button>`).join("")}</div>`;
+   <div class="tile-foot"><span>TEAM ROSTER</span><span>VIEW ROSTER →</span></div></button>`).join("")}</div>`;
 }
 function lineupColumn(title, entries) {
   return panel(title, `<div class="depth-list">${entries.map(p=>`<div class="depth-row">
@@ -295,7 +295,7 @@ async function render() {
   const tick=++lastRender;
   $("#app").innerHTML=loading();
   try {
-    if (!state.league || state.league.week!==state.week) state.league=await api(`/api/league?week=${state.week}`);
+    if (!state.league || state.league.week!==state.week) state.league=await api(`/api/league?week=${state.week}`);\n    const isSynthetic=state.league.mode==="SYNTHETIC";\n    const chip=$(".demo-chip");\n    if(chip) chip.innerHTML=isSynthetic?"<i></i> SYNTHETIC DATA":"<i></i> INTERNAL APPROVED";\n    const sidebar=$(".sidebar-bottom span");\n    if(sidebar) sidebar.textContent=isSynthetic?"100% fictional athletes":"Approved internal only";
     let html="";
     if(state.view==="overview") html=overview(state.league);
     if(state.view==="teams") html=state.teamId?await teamDetail():teamTiles();
