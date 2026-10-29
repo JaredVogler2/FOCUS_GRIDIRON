@@ -20,39 +20,55 @@ window.GRIDIRON_CARDS = (() => {
   function playerCard(r) {
     if (!r || !r.attributes) return `<div class="empty-state">Source evidence not available for this week.</div>`;
     const keys = ["quality","efficiency","flow","teamwork","records"];
-    return `<section class="evidence-explainer">
-      <div class="card-kicker">RATING COMPOSITION · SOURCE → RATING</div>
-      <div class="metric-breadcrumb"><span>RAW COUNTS</span><b>›</b><span>SUBMETRICS</span><b>›</b><span>ATTRIBUTES</span><b>›</b><span>OVR</span></div>
-      <div class="rating-equation"><b>PLAYER OVR <strong>${fixed(r.overall)}</strong></b>
-        <small>Σ(attribute score × category weight) · ${escape(r.evidence_status)}</small></div>
-      <div class="attribute-stack">${keys.map((key,index)=>{
-        const a=r.attributes[key]; if(!a) return "";
-        return `<details class="attribute-detail" ${index===0?"open":""}>
-          <summary class="attribute-head">
-            <div><span class="metric-order">0${index+1}</span>
-              <b>${escape(a.label)}</b><small>${fixed(a.weight*100,0)}% OF OVERALL</small></div>
-            <div class="attribute-head-score"><strong>${fixed(a.score)}</strong><span>+ ${fixed(a.weighted_points,2)} pts</span></div>
+    // Preserve the original player card: five immediately visible horizontal
+    // attribute bars. Tapping ANY bar reveals its actual numerator, denominator,
+    // weighted submetrics and evidence receipt; nothing is expanded by default.
+    return `<section class="evidence-explainer original-player-card">
+      <div class="card-kicker">PLAYER ATTRIBUTES <span class="card-kicker-hint">TAP ANY SCORE TO SEE ITS EVIDENCE ↓</span></div>
+      <div class="original-rating-bars">${keys.map((key) => {
+        const a=r.attributes[key];
+        if(!a)return "";
+        return `<details class="original-metric-item" data-attribute="${escape(key)}">
+          <summary class="original-metric-line" aria-label="Show underlying metrics for ${escape(a.label)}, score ${fixed(a.score)}">
+            <span class="original-metric-label">${escape(a.label).toUpperCase()}</span>
+            <span class="original-metric-track" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,Number(a.score)||0))}%"></i></span>
+            <strong class="original-metric-score">${fixed(a.score)}</strong>
+            <span class="original-metric-caret" aria-hidden="true">⌄</span>
           </summary>
-          <div class="attribute-body"><p>${escape(a.definition)}</p>
+          <div class="original-evidence-detail">
+            <div class="evidence-detail-heading"><b>WHY ${escape(a.label).toUpperCase()} = ${fixed(a.score)}?</b>
+              <span>${fixed(a.weight*100,0)}% OF PLAYER OVR · +${fixed(a.weighted_points,2)} PTS</span></div>
+            <p>${escape(a.definition)}</p>
             ${a.measures?.length ? a.measures.map(measure).join("") :
-              '<p class="evidence-note">Underlying raw receipts have not been mapped in this source. Only the approved normalized attribute is available.</p>'}
-            <div class="formula-caption">Attribute ${escape(a.label)} = ${a.measures?.length ?
-              a.measures.map(m=>`${fixed(m.score)} × ${fixed(m.weight*100,0)}%`).join(" + ") :
-              "approved normalized component"} = ${fixed(a.score)}.</div>
+              '<p class="evidence-note">Approved detailed evidence is not available for this source. No raw numbers have been inferred or fabricated.</p>'}
+            <div class="formula-caption">${escape(a.label)} score =
+              ${a.measures?.length ?
+                 a.measures.map(m=>`(${fixed(m.numerator,0)} / ${fixed(m.denominator,0)}) × 100 × ${fixed(m.weight*100,0)}%`).join(" + "):
+                 "approved normalized component"}
+              = <strong>${fixed(a.score)}</strong>
+            </div>
+            <div class="evidence-detail-foot">RECEIPT ${escape(a.receipt||r.source_receipt||"UNAVAILABLE")} ·
+              ${escape(r.evidence_status||"UNVERIFIED")} · SOURCES: ${a.measures?.length ?? 0}</div>
           </div>
-        </details>`}).join("")}</div>
+        </details>`;
+      }).join("")}</div>
+      <div class="player-ovr-foot">
+        <span>OVERALL <b>${fixed(r.overall)}</b></span>
+        <small>Σ(attribute score × weighting). Tap a bar for its source values.</small>
+      </div>
       <details class="attribute-detail positional-detail"><summary class="attribute-head"><div>
-        <span class="metric-order">+</span><b>POSITION FIT</b><small>THE GAME'S 8 ROLE RATINGS</small>
+        <span class="metric-order">+</span><b>POSITION FIT</b><small>8 FOOTBALL ROLE RATINGS</small>
         </div><strong class="metric-value">VIEW</strong></summary>
-        <div class="attribute-body"><p>Each position uses different weights across the same five source attributes. Selection maximizes the combined positional fit across 11 starting slots.</p>
-          <div class="position-score-grid">${Object.entries(r.position_details||{}).map(([position, detail])=>
+        <div class="attribute-body"><p>Game positions apply different weights to the five visible attributes. The team lineup maximizes positional fit.</p>
+          <div class="position-score-grid">${Object.entries(r.position_details||{}).map(([position,detail])=>
             `<details class="position-micro"><summary><b>${escape(position)}</b><strong>${fixed(detail.score)}</strong></summary>
               ${Object.entries(detail.weights).map(([name,w])=>
-              `<div class="weight-row"><span>${escape(name)}</span><span>${fixed(w*100,0)}% · +${fixed(detail.contributions[name],2)}</span></div>`).join("")}
-              </details>`).join("")}</div>
+                `<div class="weight-row"><span>${escape(name)}</span><span>${fixed(w*100,0)}% · +${fixed(detail.contributions[name],2)}</span></div>`).join("")}
+            </details>`).join("")}</div>
         </div></details>
-      <div class="source-signature">SOURCE RECEIPT: ${escape(r.source_receipt||"UNAVAILABLE")} · CONFIDENCE ${fixed((r.confidence||0)*100,0)}% ·
-      ${whole(r.exposure_minutes)} synthetic minutes</div>
+      <div class="source-signature">SOURCE RECEIPT: ${escape(r.source_receipt||"UNAVAILABLE")} · CONFIDENCE
+        ${fixed((r.confidence||0)*100,0)}% · ${whole(r.exposure_minutes)} verified input minutes ·
+        ${escape(r.evidence_status||"UNVERIFIED")}</div>
     </section>`;
   }
   function teamMeasure(m) {
