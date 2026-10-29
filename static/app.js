@@ -91,6 +91,8 @@ function overview(data) {
   return hero(data)+`<section class="layout-main"><div class="stack">
   ${panel("Featured matchup", featuredGame(leader),`WEEK ${data.week}`)}
   ${panel("League standings", standingsTable(data.standings), "REGULAR SEASON")}
+  ${panel("Team rating rankings", `<div class="team-rank-list">${(data.team_cards||[]).map(card=>`<button class="team-rank-row" data-team="${esc(card.team_id)}"><span class="rank">#${card.rank}</span>${crestDot(byId(card.team_id))}
+    <b>${esc(byId(card.team_id).name)}</b><span class="team-rank-value">${card.overall?.toFixed(1)??"—"}</span></button>`).join("")}</div><p class="section-note">Tap a team for its complete evidence-based team card and player breakdown.</p>`,"TEAM OVR · WEEK ${data.week}")}
   </div><div class="stack">
   ${panel("This week's games", `<div class="week-games">${data.games.map(g=>fixture(g,true)).join("")}</div>`, "SCHEDULE")}
   ${panel("MVP watch", top?`<div class="mvp-feature"><div class="avatar" style="background:${teamColor(t)};color:${teamInk(t)}" data-number="#${top.number}">★</div>
@@ -101,10 +103,13 @@ function overview(data) {
   </div></section>`;
 }
 function teamTiles() {
-  return head("Choose your team","Every franchise draws its starting eleven exclusively from its own opt-in production teammates. Ratings update weekly; the best positional fit gets the start.")+
+  const ranks=Object.fromEntries((state.league.team_cards||[]).map(c=>[c.team_id,c]));
+  return head("Choose your team","Explore a team-wide player card: overall rating → five weighted manufacturing attributes → raw synthetic evidence → individual teammate contributions.")+
   `<div class="team-grid">${state.league.teams.map(t=>`<button class="team-tile" data-team="${esc(t.id)}" style="--tile-color:${teamColor(t)}">
    ${mark(t)}<strong>${esc(t.name)}</strong><p>${esc(t.motto)}</p>
-   <div class="tile-foot"><span>TEAM ROSTER</span><span>VIEW ROSTER →</span></div></button>`).join("")}</div>`;
+   <div class="tile-rating"><span>TEAM OVR <b>${ranks[t.id]?.overall?.toFixed(1)??"—"}</b></span>
+     <small>RANK #${ranks[t.id]?.rank??"—"} · ${ranks[t.id]?.coverage_pct??0}% COVERAGE</small></div>
+   <div class="tile-foot"><span>TEAM DATA CARD</span><span>DRILL DOWN →</span></div></button>`).join("")}</div>`;
 }
 function lineupColumn(title, entries) {
   return panel(title, `<div class="depth-list">${entries.map(p=>`<div class="depth-row">
@@ -114,10 +119,12 @@ function lineupColumn(title, entries) {
 }
 async function teamDetail() {
   const d=await api(`/api/teams/${encodeURIComponent(state.teamId)}?week=${state.week}`);
-  const l=d.lineup;const color=d.color;
+  const l=d.lineup;
   return `<button class="back-button" data-back-teams>← ALL TEAMS</button>
    <div class="team-detail-hero" style="--team-shadow:${teamColor(d)}48">${mark(d)}<div><div class="overline">TEAM ROSTER · WEEK ${state.week}</div>
    <h1>${esc(d.name)}</h1><p>${esc(d.motto)}</p></div></div>
+   ${window.GRIDIRON_CARDS.teamCard(d.card,d.name)}
+   <div class="section-subtitle"><span class="accent-bar"></span> STARTING LINEUPS & DEPTH CHART</div>
    <div class="stat-grid"><div class="statbox"><strong>${l.eligible_count}</strong><small>Eligible teammates</small></div>
    <div class="statbox"><strong>${l.offense.length}</strong><small>Offense starters</small></div>
    <div class="statbox"><strong>${l.defense.length}</strong><small>Defense starters</small></div>
@@ -297,12 +304,12 @@ async function playerModal(id) {
     const d=await api(`/api/players/${encodeURIComponent(id)}?week=${state.week}`);
     const t=byId(d.team_id),r=d.ratings;
     const el=document.createElement("div");el.className="modal-scrim";el.id="player-modal";
-    el.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
+    el.innerHTML=`<section class="modal evidence-modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
       <div class="modal-head"><span class="overline">WEEK ${state.week} · SYNTHETIC PLAYER CARD</span><button class="close" data-close aria-label="Close card">×</button></div>
       <div class="team-detail-hero" style="margin-top:15px;padding:15px;--team-shadow:${teamColor(t)}44"><div class="avatar" style="background:${teamColor(t)};color:${teamInk(t)}" data-number="#${d.number}">★</div>
         <div><h2 id="modal-name" style="margin:0">${esc(d.alias)}</h2><div class="muted">${esc(t.name)} · AVG RATING</div><span class="rating-pill">${r.overall}</span></div></div>
-      ${Object.entries(r.components).map(([key,val])=>`<div class="metric-line"><span>${esc(key).toUpperCase()}</span><div class="meter"><i style="width:${val}%"></i></div><b>${val}</b></div>`).join("")}
-      <p class="section-note">Eligible exposure: ${num(r.exposure_minutes)} synthetic minutes. Confidence ${Math.round(r.confidence*100)}%. These are fictional sample ratings, never an employee grade.</p>
+      ${window.GRIDIRON_CARDS.playerCard(r)}
+      <p class="section-note">All data is fictional. Cards are entertainment ratings, not work performance evaluations or individual personnel decisions.</p>
       <button class="primary-btn" data-close style="width:100%">CLOSE CARD</button></section>`;
     document.body.appendChild(el);
     el.querySelector("[data-close]").focus();
