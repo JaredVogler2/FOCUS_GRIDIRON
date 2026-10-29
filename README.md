@@ -126,14 +126,14 @@ There are no POST endpoints or employment/personnel edits in the public demonstr
 
 See [DATA_CONTRACT.md](docs/DATA_CONTRACT.md) and [reference_contract.sql](sql/reference_contract.sql). Switch sources through the `LeagueSource` interface, **not by editing UI/game code**. The SQL adapter expects the proposed governed views `gridiron.vw_Teams`, `gridiron.vw_Players`, `gridiron.vw_WeeklyMetrics`.
 
-For the optional *approved internal* connection only:
+For a future optional *approved internal* connection only (the standalone app's private-data request gate must FIRST be replaced with tested company SSO and team-scope authorization):
 - `FOCUS_DATA_SOURCE=sqlserver`
 - `FOCUS_DEPLOYMENT_CLASS=internal`
 - `FOCUS_SQL_APPROVED=true`
 - `FOCUS_SQLSERVER_CONNECTION` injected by your company secret manager; never committed.
 - Install `pyodbc` and approved SQL Server ODBC driver in company runtime.
 
-Private mode refuses to operate on Vercel and never falls back to fixtures on a failed SQL read. SQL views are *proposed input contracts*, not installed tables and not a map to existing FOCUS databases. In particular, the current adapter requires effective roster validation for team transfers to be added before real-world use; it is not production-certified.
+Private mode is blocked by the standalone application's request gate until company SSO and team-scoped authorization have been implemented and approved. The example SQL source also refuses Vercel and never falls back to fixtures on a failed SQL read. SQL views are *proposed input contracts*, not installed tables and not a map to existing FOCUS databases. In particular, the current adapter requires effective roster validation for team transfers to be added before real-world use; it is not production-certified.
 
 **Non-negotiable policy:** no private employee information or internal SQL mappings in this public repository or Vercel; no games affecting HR decisions, pay, discipline, qualification, timekeeping, or safety reporting. Protect legitimate approved leave, corrected records and quality detection from punitive scoring. Require voluntary opt-in and approved employee-facing access before work-side use.
 
