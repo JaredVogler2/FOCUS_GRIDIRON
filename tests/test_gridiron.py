@@ -165,3 +165,94 @@ def test_football_team_colors_are_distinct_from_green_turf():
     # Not merely unique hexes: distinct hue families on an actual field.
     for a, b in itertools.combinations(hue_angles, 2):
         assert min(abs(a - b), 360 - abs(a - b)) >= 25
+
+
+
+def test_synthetic_receipts_reconstruct_every_attribute():
+    from gridiron.evidence import METRIC_CATALOG, derived_category_score
+    source = SyntheticSource().snapshot()
+    assert len(METRIC_CATALOG) == 5
+    for m in source.metrics[::37]:
+        assert set(m["evidence"]) == set(METRIC_CATALOG)
+        for category, measures in m["evidence"].items():
+            assert len(measures) == len(METRIC_CATALOG[category]["measures"])
+            assert derived_category_score(measures) == m[category]
+            assert sum(row["weight"] for row in measures) == pytest.approx(1.0)
+            for row in measures:
+                assert row["is_synthetic"]
+                assert row["numerator"] <= row["denominator"]
+                assert row["score"] == pytest.approx(
+                    round(100 * row["numerator"]/row["denominator"], 2))
+    from gridiron.ratings import rate
+    r = rate(source.metrics[0])
+    assert r["status"] == "READY"
+    assert sum(a["weighted_points"] for a in r["attributes"].values()) == pytest.approx(
+        r["overall"], abs=0.055)
+    assert set(r["position_details"]) == {"QB","RB","WR","TE","OL","DL","LB","DB"}
+
+
+def test_tampered_evidence_fails_closed():
+    from gridiron.ratings import rate
+    import copy
+    original = SyntheticSource().snapshot().metrics[0]
+    m = copy.deepcopy(original)
+    m["evidence"]["quality"][0]["score"] = 0
+    assert rate(m)["status"] == "UNKNOWN"
+    assert rate(m)["overall"] is None
+
+
+def test_team_card_rolls_up_all_five_metrics_and_every_eligible_teammate():
+    l = get_league()
+    for week in (1, 6, 10, 12):
+        card = l.team_card("riveters", week)
+        assert card["team_id"] == "riveters"
+        assert card["rank"] in range(1, 7)
+        assert card["roster"]["total"] == 30
+        assert card["roster"]["opted_out"] == 2
+        assert card["roster"]["rated"] == 28
+        assert card["offense"]["starters"] == 11
+        assert card["defense"]["starters"] == 11
+        assert card["participating_count"] == len(card["player_ranking"]) == 28
+        assert card["overall"] == pytest.approx(
+            sum(p["overall"] for p in card["player_ranking"])/28, abs=0.005)
+        assert set(card["attributes"]) == {"quality","efficiency","flow","teamwork","records"}
+        assert sum(a["weighted_points"] for a in card["attributes"].values()) == pytest.approx(
+            card["overall"], abs=0.055)
+        for attr in card["attributes"].values():
+            assert attr["participant_count"] == 28
+            assert len(attr["player_scores"]) == 28
+            for m in attr["measures"]:
+                assert m["participant_count"] == 28
+                assert m["total_denominator"] > 0
+                assert m["total_numerator"] <= m["total_denominator"]
+                assert m["mean_score"] is not None
+                assert m["pooled_rate"] is not None
+        if week == 12:
+            assert card["overall"] == l.team_card("riveters", 10)["overall"]
+            assert card["history"][-1]["week"] == 10
+
+
+def test_team_rankings_and_new_evidence_endpoints():
+    client=app.test_client()
+    overview=client.get("/api/league?week=7").json
+    team_cards=overview["team_cards"]
+    assert len(team_cards) == 6
+    assert [card["rank"] for card in team_cards] == list(range(1, 7))
+    assert all(team_cards[i]["overall"] >= team_cards[i+1]["overall"] for i in range(5))
+    detail=client.get("/api/teams/riveters?week=7").json
+    assert detail["card"]["team_id"] == "riveters"
+    new=client.get("/api/teams/riveters/card?week=7")
+    assert new.status_code == 200
+    assert new.json["overall"] == detail["card"]["overall"]
+    assert client.get("/api/teams/fake/card").status_code == 404
+    catalog=client.get("/api/attributes")
+    assert catalog.status_code == 200
+    assert catalog.json["attributes"]["quality"]["weight"] == .30
+    assert len(catalog.json["attributes"]["quality"]["measures"]) == 3
+    player=client.get("/api/players/riveters-p01?week=2").json
+    assert player["ratings"]["attributes"]["efficiency"]["measures"]
+    assert player["ratings"]["source_receipt"] == "demo-02"
+    assert client.get("/static/cards.js").status_code == 200
+    assert client.get("/static/cards.css").status_code == 200
+    html=client.get("/").get_data(as_text=True)
+    assert "cards.js" in html and "cards.css" in html
