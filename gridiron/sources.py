@@ -77,23 +77,21 @@ class SyntheticSource:
                                     number=10 + n, opted_in=opted_in, eligible=True,
                                     specialty=specialty, is_synthetic=True))
                 for week in range(1, WEEKS + 1):
+                    # The five published scores are computed FROM underlying
+                    # fictional opportunity counts and validated-effort ratios.
+                    # This makes the demo card fully auditable rather than
+                    # inventing post-hoc evidence for a preassigned rating.
+                    from .evidence import METRIC_CATALOG, synthetic_evidence, derived_category_score
                     base = 68 + noise(0, 20, "talent", pid)
                     drift = noise(-7, 7, "week", pid, week)
-                    def score(code: str, bonus: int = 0) -> int:
-                        return max(35, min(99, base + drift + bonus + noise(-9, 9, pid, week, code)))
-                    bonus = dict(
-                        quality=(10 if specialty == "quality" else 0),
-                        efficiency=(10 if specialty == "execution" else 0),
-                        flow=(10 if specialty == "flow" else 0),
-                        teamwork=(10 if specialty == "collaboration" else 0),
-                        records=(10 if specialty == "precision" else 0),
-                    )
+                    evidence = {
+                        category: synthetic_evidence(pid, week, category, base + drift, specialty)
+                        for category in METRIC_CATALOG
+                    }
+                    scores = {category: derived_category_score(measures)
+                              for category, measures in evidence.items()}
                     metrics.append(dict(player_id=pid, week=week,
-                        quality=score("quality", bonus["quality"]),
-                        efficiency=score("efficiency", bonus["efficiency"]),
-                        flow=score("flow", bonus["flow"]),
-                        teamwork=score("teamwork", bonus["teamwork"]),
-                        records=score("records", bonus["records"]),
+                        **scores, evidence=evidence,
                         confidence=round(0.82 + noise(0, 17, pid, week, "confidence") / 100, 2),
                         exposure_minutes=480 + noise(0, 900, pid, week, "exposure"),
                         evidence_status="VERIFIED_SYNTHETIC",
