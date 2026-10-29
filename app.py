@@ -6,7 +6,18 @@ from flask import Flask, jsonify, render_template, request
 from gridiron.league import get_league
 
 app = Flask(__name__)
-app.json.sort_keys = False\n\n\n@app.before_request\ndef private_data_gate():\n    # This standalone public/fixture UI deliberately has no employee SSO or\n    # caller-owned team scoping. Never expose live employee data through it.\n    # Corporate work-side agents must replace this gate with approved identity,\n    # row-level authorization and team-scope-before-fetch, then review APIs.\n    if os.environ.get("FOCUS_DATA_SOURCE", "synthetic").lower() != "synthetic":\n        return jsonify(error="Private data mode requires company SSO, scope and approved adapter integration; disabled in standalone demo."), 503\n
+app.json.sort_keys = False
+
+
+@app.before_request
+def private_data_gate():
+    # This standalone public/fixture UI deliberately has no employee SSO or
+    # caller-owned team scoping. Never expose live employee data through it.
+    # Corporate work-side agents must replace this gate with approved identity,
+    # row-level authorization and team-scope-before-fetch, then review APIs.
+    if os.environ.get("FOCUS_DATA_SOURCE", "synthetic").lower() != "synthetic":
+        return jsonify(error="Private data mode requires company SSO, scope and approved adapter integration; disabled in standalone demo."), 503
+
 
 
 def week_arg():
