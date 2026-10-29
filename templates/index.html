@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1514">
+  <meta name="description" content="FOCUS Gridiron — production teams compete in a data-powered 2D football league. Fully synthetic demonstration.">
+  <title>FOCUS GRIDIRON · Production League</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>window.GRIDIRON_BASE={{ request.script_root|tojson }};</script>
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="brand"><div class="brand-icon"><span>G</span></div><div><strong>FOCUS</strong><b>GRIDIRON</b><small>THE PRODUCTION LEAGUE</small></div></div>
+      <div class="side-label">THE LEAGUE</div>
+      <nav class="side-links">
+        <button class="nav-link active" data-view="overview"><span class="nav-symbol">▦</span> Overview</button>
+        <button class="nav-link" data-view="teams"><span class="nav-symbol">◈</span> Teams &amp; starters</button>
+        <button class="nav-link" data-view="schedule"><span class="nav-symbol">▤</span> Season schedule</button>
+        <button class="nav-link" data-view="mvp"><span class="nav-symbol">★</span> MVP race</button>
+        <button class="nav-link" data-view="game"><span class="nav-symbol">▶</span> Game center</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="live-dot"></div><div><b>DEMO ENVIRONMENT</b><span>100% fictional athletes</span></div></div>
+    </aside>
+    <main class="main-panel">
+      <header class="header">
+        <div class="mobile-brand">FOCUS <strong>GRIDIRON</strong></div>
+        <div class="breadcrumb"><span>PRODUCTION LEAGUE</span> <span class="dotsep">/</span> <strong id="crumb">Overview</strong></div>
+        <div class="header-right"><span class="demo-chip"><i></i> SYNTHETIC DATA</span><span class="season-chip">SEASON 01</span></div>
+      </header>
+      <div class="content">
+        <div class="topline"><div class="eyebrow"><span class="accent-bar"></span> FOCUS · MANUFACTURING FOOTBALL</div><div class="selector"><label for="week">WEEK</label><select id="week" aria-label="Select season week"></select></div></div>
+        <section id="app" aria-live="polite"><div class="loading"><div class="spin"></div> Loading the league...</div></section>
+        <footer>FOCUS GRIDIRON <span>•</span> Entertainment demonstration only <span>•</span> Fictional teams &amp; simulated manufacturing metrics <span>•</span> No employment decisions</footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
