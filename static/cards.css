@@ -1,0 +1,148 @@
+/* Aviation-inspired (not official branding) transparent statistics cards.
+   Field turf and franchise jerseys retain their own colors. */
+.evidence-modal{max-width:860px;width:min(860px,96vw);background:#0e2343;border:1px solid #4674a6}
+.evidence-modal .modal-head{position:sticky;top:-25px;z-index:3;background:#0e2343;padding:12px 0;border-bottom:1px solid #284c76}
+.evidence-modal .team-detail-hero{background:#11284c}
+.evidence-explainer{margin:17px 0 14px}
+.card-kicker{font-weight:850;letter-spacing:1.8px;font-size:10px;color:#74c6ff;text-transform:uppercase}
+.metric-breadcrumb{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:9px;letter-spacing:1px;font-weight:800;color:#92b0d2;margin:13px 0 20px}
+.metric-breadcrumb b{color:#5fb3f6;font-size:15px}
+.rating-equation{background:linear-gradient(110deg,#0b3262,#102343);border:1px solid #39689c;border-radius:12px;padding:15px 18px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.rating-equation b{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:23px;display:flex;gap:14px;align-items:center}
+.rating-equation strong{font-size:38px;color:#91d7ff}
+.rating-equation small{font-size:10px;color:#9bb7d8}
+.attribute-stack{display:grid;gap:9px;margin-top:12px}
+.attribute-detail{background:#112848;border:1px solid #365677;border-radius:11px;overflow:hidden}
+.attribute-detail[open]{border-color:#538bc4}
+.attribute-head{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px 16px;cursor:pointer;position:relative}
+.attribute-head::-webkit-details-marker{display:none}
+.attribute-head:focus-visible,.team-attribute>summary:focus-visible,.contributor-list>summary:focus-visible{outline:2px solid #83d1ff;outline-offset:-3px}
+.attribute-head>div:first-child{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.attribute-head b{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.6px;font-size:22px}
+.attribute-head small{font-size:10px;font-weight:850;letter-spacing:.6px;color:#95afd0}
+.metric-order{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#75b9f1}
+.attribute-head-score{text-align:right;display:grid;gap:1px}
+.attribute-head-score strong,.metric-value{color:#95d6ff;font-family:'Barlow Condensed',sans-serif;font-size:27px;font-weight:800;white-space:nowrap}
+.attribute-head-score span{font-size:10px;color:#b4c9e6;font-weight:750;white-space:nowrap}
+.attribute-body,.team-attr-details{background:#091e3a;padding:16px;border-top:1px solid #2e537d}
+.attribute-body p,.team-attr-details>p{font-size:12px;line-height:1.6;color:#b0c8e1;margin-bottom:15px}
+.source-measure{border:1px solid #294c77;border-radius:9px;padding:13px;margin:9px 0;background:#0d2646}
+.source-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.source-top strong{font-size:12px}
+.source-top .metric-value{font-size:22px}
+.source-top .metric-value small{font-size:11px;color:#a4b8d1}
+.metric-progress{height:6px;border-radius:10px;background:#273e60;overflow:hidden;margin:9px 0}
+.metric-progress i{display:block;height:100%;background:linear-gradient(90deg,#287dd6,#76ccff);border-radius:10px}
+.measure-math{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#b2c6df;font-size:11px;line-height:1.5}
+.measure-math b{color:#e5f4ff}
+.evidence-foot{font-size:10px;color:#8ca6c5;display:block;margin-top:6px;line-height:1.5}
+.formula-caption,.source-signature,.evidence-note{font-size:10px;line-height:1.6;color:#9bb6d2;background:#102947;border-radius:8px;padding:12px;margin-top:12px}
+.source-signature{border:1px solid #355777;margin-top:17px}
+.position-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.position-micro{border:1px solid #345677;background:#112b4c;padding:11px;border-radius:8px}
+.position-micro>summary{display:flex;cursor:pointer;justify-content:space-between;color:#d5eaff;font-size:12px;list-style:none}
+.position-micro strong{color:#7dceff}
+.weight-row{display:flex;justify-content:space-between;gap:10px;font-size:10px;padding:6px 0;color:#b8cce5;border-bottom:1px solid #28466a}
+
+/* Team-wide player card hierarchy. */
+.team-performance-card{border:1px solid #426fa4;background:linear-gradient(145deg,#122e57,#0b1d3a 60%);border-radius:16px;padding:23px;margin:0 0 22px;box-shadow:0 18px 55px #020a22aa}
+.team-card-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}
+.team-card-top h2{font-size:35px;margin:5px 0 4px;line-height:1.05}
+.team-card-top h2 span{font-size:23px;color:#7fcaff;display:inline-block;margin-left:6px}
+.team-card-top p{color:#a9bed9;font-size:12px;line-height:1.6}
+.team-card-rank{text-align:center;white-space:nowrap;padding:9px 13px;border:1px solid #38669d;border-radius:11px;color:#a2b9d5;font-size:9px;font-weight:800;letter-spacing:1.1px}
+.team-card-rank strong{color:#94d4ff;font-family:'Barlow Condensed',sans-serif;font-size:34px;display:block;line-height:1.2}
+.team-performance-card .metric-breadcrumb{margin-top:8px}
+.card-overall-row{display:grid;grid-template-columns:minmax(190px,.9fr) minmax(0,2fr);gap:12px;align-items:stretch}
+.overall-hero{background:linear-gradient(140deg,#0963bd,#0a3979);border:1px solid #57a0e7;border-radius:12px;padding:14px 17px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.overall-hero small{width:100%;font-size:10px;font-weight:850;letter-spacing:1.5px;color:#c4e6ff}
+.overall-hero strong{font:900 clamp(48px,5vw,73px)/1 'Barlow Condensed',sans-serif;color:white}
+.overall-hero span{font-weight:700;font-size:14px;color:#afdaf8}
+.card-score-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card-score-facts>div{background:#102b51;border:1px solid #385b86;border-radius:10px;padding:13px;display:flex;flex-direction:column;justify-content:center}
+.card-score-facts small{font-size:9px;color:#9abada;letter-spacing:.8px;font-weight:800}
+.card-score-facts b{font:900 28px 'Barlow Condensed',sans-serif;color:#edf7ff}
+.card-method{background:#071b36;border-left:3px solid #5ebcff;padding:12px;margin:13px 0 19px;font-size:11px;line-height:1.6;color:#a8c0db}
+.card-method b{color:#90d0fb;margin-right:6px;letter-spacing:1px}
+.team-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.team-attribute{border:1px solid #335981;background:#112b4e;border-radius:11px;overflow:hidden;min-width:0}
+.team-attribute:nth-child(5){grid-column:1/-1}
+.team-attribute[open]{border-color:#548bd0;background:#102c56}
+.team-attribute>summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:9px;list-style:none;padding:14px}
+.team-attribute>summary::-webkit-details-marker{display:none}
+.team-attr-name{display:grid;grid-template-columns:auto 1fr;gap:0 9px;align-items:center}
+.team-attr-name .metric-order{grid-row:span 2}
+.team-attr-name b{font:800 24px 'Barlow Condensed',sans-serif;text-transform:uppercase}
+.team-attr-name small{grid-column:2;color:#98b9da;font-size:9px;letter-spacing:.6px;font-weight:800}
+.team-attr-value{display:grid;text-align:right;min-width:60px}
+.team-attr-value strong{font:900 31px 'Barlow Condensed',sans-serif;color:#91d5ff}
+.team-attr-value span{font-size:9px;color:#aec6e1;font-weight:700}
+.team-attr-details{padding:13px}
+.detail-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:#88c6f8;letter-spacing:1.1px;font-weight:850;margin:0 0 12px}
+.detail-heading span{font-size:9px;color:#88aacc}
+.team-source{padding:11px}
+.raw-rollup{margin:9px 0 2px;background:#1a385b;padding:9px;border-radius:7px;display:grid;gap:5px;font-size:10px;color:#bacfe8}
+.raw-rollup b{color:#8dcffa;letter-spacing:1px}
+.contributor-list,.team-contributors{border:1px solid #426b95;border-radius:8px;background:#142f52;margin-top:11px}
+.contributor-list>summary,.team-contributors>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;font-size:10px;font-weight:850;letter-spacing:.7px;color:#90d1ff;cursor:pointer}
+.contributor-list>summary::-webkit-details-marker,.team-contributors>summary::-webkit-details-marker{display:none}
+.contributor-rows{padding:0 11px 10px;max-height:270px;overflow:auto}
+.contributor-row{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;padding:8px 0;border-bottom:1px solid #31506f;font-size:11px}
+.contributor-row small{color:#9aafcb}
+.contributor-row b{color:#b1e5ff}
+.card-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.small-data-panel{border:1px solid #3c5f86;border-radius:11px;background:#0a2343;padding:16px}
+.card-counter{font:800 30px 'Barlow Condensed',sans-serif}
+.card-counter small{color:#a8c1db;font:600 11px 'DM Sans',sans-serif}
+.data-footline{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:#b1c5df;margin-top:10px}
+.data-footline b{color:#f0f6ff}
+.role-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.role-grid span{display:grid;gap:2px;border:1px solid #365c84;background:#17365a;border-radius:7px;padding:7px;min-width:0}
+.role-grid b{font:800 17px 'Barlow Condensed',sans-serif}
+.role-grid small{color:#95b0ce;font-size:8px}
+.role-grid strong{color:#94d5ff;font-size:14px}
+.team-contributors{margin-top:15px}
+.full-roster-table{padding:8px;overflow:auto;max-height:520px}
+.roster-table-header,.roster-table-row{min-width:520px;display:grid;grid-template-columns:minmax(140px,1.6fr) repeat(6,minmax(49px,.55fr));gap:8px;padding:9px 10px;align-items:center;border-bottom:1px solid #315376;font-size:11px}
+.roster-table-header{color:#93b9de;font-size:9px;font-weight:800;letter-spacing:.7px}
+.roster-table-row:nth-child(odd){background:#173457}
+.roster-table-row>b{color:#a0dcff}
+.roster-table-row span{text-align:center}
+.team-rank-list{display:grid;gap:6px}
+.team-rank-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 11px;border:1px solid #30527e;border-radius:8px;background:#102949;color:#e8f3ff}
+.team-rank-row:hover{background:#1a416f;border-color:#69bafd}
+.team-rank-row b{flex:1;text-align:left;font-size:12px}
+.team-rank-value{font:900 22px 'Barlow Condensed',sans-serif;color:#a1daff}
+.tile-rating{background:#0a2142;border:1px solid #375d8a;border-radius:9px;padding:10px;margin:13px 0}
+.tile-rating span{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#a5c4e5;font-size:10px;font-weight:800}
+.tile-rating b{font:900 32px 'Barlow Condensed',sans-serif;color:#fff}
+.tile-rating small{display:block;font-size:9px;color:#a0b6d5;margin-top:2px}
+.section-subtitle{font-size:12px;color:#9ccdfb;font-weight:800;letter-spacing:1.4px;margin:25px 0 12px}
+@media(max-width:760px){
+  .team-metric-grid{grid-template-columns:1fr}
+  .team-attribute:nth-child(5){grid-column:auto}
+  .team-performance-card{padding:15px}
+  .team-card-top h2{font-size:30px}
+  .team-card-top h2 span{font-size:18px}
+  .team-card-rank{padding:8px}
+  .card-detail-grid{grid-template-columns:1fr}
+  .evidence-modal{max-width:95vw}
+}
+@media(max-width:540px){
+  .card-overall-row{grid-template-columns:1fr}
+  .overall-hero{justify-content:center;text-align:center}
+  .overall-hero small{width:100%}
+  .team-card-top{align-items:center}
+  .team-card-top h2{font-size:26px}
+  .team-card-top h2 span{font-size:17px}
+  .team-card-rank strong{font-size:27px}
+  .card-score-facts{gap:7px}
+  .card-score-facts>div{padding:11px}
+  .metric-breadcrumb{gap:5px}
+  .metric-breadcrumb span{font-size:8px}
+  .evidence-modal{padding:14px}
+  .attribute-head{padding:12px}
+  .attribute-head b{font-size:20px}
+  .position-score-grid{grid-template-columns:1fr}
+  .role-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
