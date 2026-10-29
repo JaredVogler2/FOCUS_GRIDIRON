@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from .sources import Snapshot
+from .evidence import METRIC_CATALOG, derived_category_score
 
 WEIGHTS = {"quality": .30, "efficiency": .25, "flow": .20,
            "teamwork": .15, "records": .10}
@@ -31,12 +32,43 @@ def rate(metric: dict | None) -> dict:
     if (metric.get("exposure_minutes") or 0) < 120:
         return {"status": "PROVISIONAL", "overall": None, "position_scores": {}, "confidence": None}
     values = {k: float(metric[k]) for k in METRICS}
+    evidence = metric.get("evidence") or {}
+    # If detailed receipts exist, do not show them unless they actually
+    # reproduce the projected category score. Reject inconsistent data.
+    for key in METRICS:
+        if key in evidence:
+            derived = derived_category_score(evidence[key])
+            if derived is None or abs(derived-values[key]) > .015:
+                return {"status": "UNKNOWN", "overall": None,
+                        "position_scores": {}, "confidence": None}
     overall = round(sum(values[k] * v for k, v in WEIGHTS.items()), 1)
     position = {p: round(sum(values[k] * w for k, w in weights.items()), 1)
                 for p, weights in POSITION_WEIGHTS.items()}
+    detail = {
+        k: dict(
+            label=METRIC_CATALOG[k]["label"],
+            definition=METRIC_CATALOG[k]["definition"],
+            score=values[k], weight=weight,
+            weighted_points=round(values[k]*weight, 4),
+            measures=evidence.get(k, []),
+            evidence_available=k in evidence,
+            receipt=metric.get("source_receipt"),
+        )
+        for k, weight in WEIGHTS.items()
+    }
+    position_detail = {
+        pos: dict(score=position[pos], weights=weights,
+                  contributions={key: round(values[key]*weight, 4)
+                                 for key, weight in weights.items()})
+        for pos, weights in POSITION_WEIGHTS.items()
+    }
     return dict(status="READY", overall=overall, position_scores=position,
                 confidence=float(metric.get("confidence") or 0),
-                components=values, exposure_minutes=int(metric["exposure_minutes"]))
+                components=values, exposure_minutes=int(metric["exposure_minutes"]),
+                attributes=detail, position_details=position_detail,
+                overall_formula="Σ(attribute score × attribute weight)",
+                source_receipt=metric.get("source_receipt"),
+                evidence_status=metric["evidence_status"])
 
 
 def rate_week(source: Snapshot, week: int) -> dict[str, dict]:
