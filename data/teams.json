@@ -1,8 +1,50 @@
 [
- {"id":"riveters","name":"Riveters","short":"RIV","color":"#ff785d","accent":"#ffd1bd","motto":"Built to finish."},
- {"id":"torque","name":"Torque Titans","short":"TOR","color":"#f5b74c","accent":"#ffe6a0","motto":"Precision under pressure."},
- {"id":"volt","name":"Voltage","short":"VLT","color":"#60d7ef","accent":"#b5f3ff","motto":"Bring the energy."},
- {"id":"wing","name":"Wing Command","short":"WNG","color":"#9b8cfb","accent":"#d5cfff","motto":"Own the skies."},
- {"id":"steel","name":"Steel Hawks","short":"STL","color":"#6fd6a3","accent":"#c9ffdf","motto":"One team, one mission."},
- {"id":"flight","name":"Flightline Foxes","short":"FLX","color":"#ed87ad","accent":"#ffd2e6","motto":"Speed with control."}
+  {
+    "id": "riveters",
+    "name": "Riveters",
+    "short": "RIV",
+    "color": "#FF6900",
+    "accent": "#FFD3B5",
+    "motto": "Built to finish."
+  },
+  {
+    "id": "torque",
+    "name": "Torque Titans",
+    "short": "TOR",
+    "color": "#FFE000",
+    "accent": "#FFF5AD",
+    "motto": "Precision under pressure."
+  },
+  {
+    "id": "volt",
+    "name": "Voltage",
+    "short": "VLT",
+    "color": "#00D8FF",
+    "accent": "#B6F4FF",
+    "motto": "Bring the energy."
+  },
+  {
+    "id": "wing",
+    "name": "Wing Command",
+    "short": "WNG",
+    "color": "#AF5CFF",
+    "accent": "#E7C9FF",
+    "motto": "Own the skies."
+  },
+  {
+    "id": "steel",
+    "name": "Steel Hawks",
+    "short": "STL",
+    "color": "#FF268E",
+    "accent": "#FFC1DF",
+    "motto": "One team, one mission."
+  },
+  {
+    "id": "flight",
+    "name": "Flightline Foxes",
+    "short": "FLX",
+    "color": "#0652FF",
+    "accent": "#B4CCFF",
+    "motto": "Speed with control."
+  }
 ]
