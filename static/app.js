@@ -295,7 +295,12 @@ async function render() {
   const tick=++lastRender;
   $("#app").innerHTML=loading();
   try {
-    if (!state.league || state.league.week!==state.week) state.league=await api(`/api/league?week=${state.week}`);\n    const isSynthetic=state.league.mode==="SYNTHETIC";\n    const chip=$(".demo-chip");\n    if(chip) chip.innerHTML=isSynthetic?"<i></i> SYNTHETIC DATA":"<i></i> INTERNAL APPROVED";\n    const sidebar=$(".sidebar-bottom span");\n    if(sidebar) sidebar.textContent=isSynthetic?"100% fictional athletes":"Approved internal only";
+    if (!state.league || state.league.week!==state.week) state.league=await api(`/api/league?week=${state.week}`);
+    const isSynthetic=state.league.mode==="SYNTHETIC";
+    const chip=$(".demo-chip");
+    if(chip) chip.innerHTML=isSynthetic?"<i></i> SYNTHETIC DATA":"<i></i> INTERNAL APPROVED";
+    const sidebar=$(".sidebar-bottom span");
+    if(sidebar) sidebar.textContent=isSynthetic?"100% fictional athletes":"Approved internal only";
     let html="";
     if(state.view==="overview") html=overview(state.league);
     if(state.view==="teams") html=state.teamId?await teamDetail():teamTiles();
