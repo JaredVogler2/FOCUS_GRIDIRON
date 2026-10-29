@@ -7,11 +7,21 @@ const state = { view:"overview", week:1, teamId:null, gameId:null, game:null,
 const $ = (q) => document.querySelector(q);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, ch =>
   ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-const byId = (t) => (state.league?.teams || []).find(x=>x.id === t) || {id:t,name:t,short:t.slice(0,3),color:"#b9d7c3"};
+const byId = (t) => (state.league?.teams || []).find(x=>x.id === t) || {id:t,name:t,short:t.slice(0,3),color:"#F1F1F1"};
 const isPlayoff = (w) => w > 10;
 const num = (x) => Number(x || 0).toLocaleString("en-US");
-const mark = (team, size="") => `<div class="team-crest ${size}" style="background:${esc(team.color)}">${esc(team.short)}</div>`;
-const crestDot = (team) => `<span class="team-dot" style="background:${esc(team.color)}"></span>`;
+// Select black or white jersey numerals according to WCAG luminance;
+ // reject non-hex colors from future database-backed sources.
+const teamColor = team => /^#[0-9a-f]{6}$/i.test(team?.color || "") ? team.color : "#F1F1F1";
+const teamInk = team => {
+  const hex=teamColor(team);
+  const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+  const lum=rgb.map(c=>c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4)
+    .reduce((sum,c,i)=>sum+c*[0.2126,0.7152,0.0722][i],0);
+  return lum>0.179?"#10191B":"#FFFFFF";
+};
+const mark = (team, size="") => `<div class="team-crest ${size}" style="background:${teamColor(team)};color:${teamInk(team)}">${esc(team.short)}</div>`;
+const crestDot = (team) => `<span class="team-dot" style="background:${teamColor(team)}"></span>`;
 const loading = () => '<div class="loading"><div class="spin"></div> Loading league data...</div>';
 
 async function api(url) {
@@ -83,7 +93,7 @@ function overview(data) {
   ${panel("League standings", standingsTable(data.standings), "REGULAR SEASON")}
   </div><div class="stack">
   ${panel("This week's games", `<div class="week-games">${data.games.map(g=>fixture(g,true)).join("")}</div>`, "SCHEDULE")}
-  ${panel("MVP watch", top?`<div class="mvp-feature"><div class="avatar" style="background:${esc(t.color)}" data-number="#${top.number}">★</div>
+  ${panel("MVP watch", top?`<div class="mvp-feature"><div class="avatar" style="background:${teamColor(t)};color:${teamInk(t)}" data-number="#${top.number}">★</div>
      <div><small>FRONTRUNNER · WEEK ${data.week}</small><b>${esc(top.alias)}</b><small>${esc(t.name)} · ${top.overall} AVG OVR</small></div>
      <div style="margin-left:auto"><span class="rating-pill">${top.mvp_score.toFixed(1)}</span></div></div>
      ${data.mvp.slice(1,5).map((p,i)=>mvpRow(p,i+1)).join("")}
@@ -92,7 +102,7 @@ function overview(data) {
 }
 function teamTiles() {
   return head("Choose your team","Every franchise draws its starting eleven exclusively from its own opt-in production teammates. Ratings update weekly; the best positional fit gets the start.")+
-  `<div class="team-grid">${state.league.teams.map(t=>`<button class="team-tile" data-team="${esc(t.id)}" style="--tile-color:${esc(t.color)}">
+  `<div class="team-grid">${state.league.teams.map(t=>`<button class="team-tile" data-team="${esc(t.id)}" style="--tile-color:${teamColor(t)}">
    ${mark(t)}<strong>${esc(t.name)}</strong><p>${esc(t.motto)}</p>
    <div class="tile-foot"><span>TEAM ROSTER</span><span>VIEW ROSTER →</span></div></button>`).join("")}</div>`;
 }
@@ -106,7 +116,7 @@ async function teamDetail() {
   const d=await api(`/api/teams/${encodeURIComponent(state.teamId)}?week=${state.week}`);
   const l=d.lineup;const color=d.color;
   return `<button class="back-button" data-back-teams>← ALL TEAMS</button>
-   <div class="team-detail-hero" style="--team-shadow:${esc(color)}48">${mark(d)}<div><div class="overline">TEAM ROSTER · WEEK ${state.week}</div>
+   <div class="team-detail-hero" style="--team-shadow:${teamColor(d)}48">${mark(d)}<div><div class="overline">TEAM ROSTER · WEEK ${state.week}</div>
    <h1>${esc(d.name)}</h1><p>${esc(d.motto)}</p></div></div>
    <div class="stat-grid"><div class="statbox"><strong>${l.eligible_count}</strong><small>Eligible teammates</small></div>
    <div class="statbox"><strong>${l.offense.length}</strong><small>Offense starters</small></div>
@@ -137,7 +147,7 @@ function mvpView(data) {
   const all=data.mvp;
   return head("The MVP race","The strongest football performers across all six teams. The demonstrative formula combines verified synthetic work-derived player ratings and simulated football production.")+
    `<div class="mvp-board">${all.slice(0,3).map((p,i)=>{const t=byId(p.team_id);
-      return `<div class="mvp-podium"><span class="podium-no">#0${i+1}</span><div class="avatar" style="background:${esc(t.color)}" data-number="#${p.number}">★</div>
+      return `<div class="mvp-podium"><span class="podium-no">#0${i+1}</span><div class="avatar" style="background:${teamColor(t)};color:${teamInk(t)}" data-number="#${p.number}">★</div>
         <h2>${esc(p.alias)}</h2><p>${esc(t.name)}</p>
         <div class="scoreboard"><div><small class="muted">MVP POINTS</small><div style="font:900 32px 'Barlow Condensed'">${p.mvp_score.toFixed(1)}</div></div>
         <div><small class="muted">AVG OVR</small><div style="font:900 32px 'Barlow Condensed'">${p.overall}</div></div></div>
@@ -187,8 +197,8 @@ function fieldSvg(game, play) {
   return `<svg viewBox="0 0 1000 525" role="img" aria-label="Top-down 2D football play: ${esc(o.name)} attacking ${esc(d.name)}, ball on the ${play.yard_line} yard line.">
     <defs><pattern id="grass" width="80" height="525" patternUnits="userSpaceOnUse"><rect width="80" height="525" fill="#215e41"/><rect width="40" height="525" fill="#276747"/></pattern></defs>
     <rect width="1000" height="525" fill="#0b3827"/><rect x="100" y="24" width="800" height="476" fill="url(#grass)" stroke="#e4ffe2" stroke-width="3"/>
-    <rect x="0" y="24" width="100" height="476" fill="${esc(h.color)}" opacity=".65"/>
-    <rect x="900" y="24" width="100" height="476" fill="${esc(a.color)}" opacity=".65"/>
+    <rect x="0" y="24" width="100" height="476" fill="${teamColor(h)}" opacity=".98"/>
+    <rect x="900" y="24" width="100" height="476" fill="${teamColor(a)}" opacity=".98"/>
     <text x="52" y="260" fill="#fff" font-family="Arial" font-size="28" font-weight="bold" text-anchor="middle" transform="rotate(-90 52 260)">${esc(h.short)}</text>
     <text x="948" y="260" fill="#fff" font-family="Arial" font-size="28" font-weight="bold" text-anchor="middle" transform="rotate(90 948 260)">${esc(a.short)}</text>
     ${markings}<line x1="0" y1="262" x2="1000" y2="262" stroke="#e6fce2" stroke-opacity=".24" stroke-dasharray="4 8"/>
@@ -281,7 +291,7 @@ async function playerModal(id) {
     const el=document.createElement("div");el.className="modal-scrim";el.id="player-modal";
     el.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-name">
       <div class="modal-head"><span class="overline">WEEK ${state.week} · SYNTHETIC PLAYER CARD</span><button class="close" data-close aria-label="Close card">×</button></div>
-      <div class="team-detail-hero" style="margin-top:15px;padding:15px;--team-shadow:${esc(t.color)}44"><div class="avatar" style="background:${esc(t.color)}" data-number="#${d.number}">★</div>
+      <div class="team-detail-hero" style="margin-top:15px;padding:15px;--team-shadow:${teamColor(t)}44"><div class="avatar" style="background:${teamColor(t)};color:${teamInk(t)}" data-number="#${d.number}">★</div>
         <div><h2 id="modal-name" style="margin:0">${esc(d.alias)}</h2><div class="muted">${esc(t.name)} · AVG RATING</div><span class="rating-pill">${r.overall}</span></div></div>
       ${Object.entries(r.components).map(([key,val])=>`<div class="metric-line"><span>${esc(key).toUpperCase()}</span><div class="meter"><i style="width:${val}%"></i></div><b>${val}</b></div>`).join("")}
       <p class="section-note">Eligible exposure: ${num(r.exposure_minutes)} synthetic minutes. Confidence ${Math.round(r.confidence*100)}%. These are fictional sample ratings, never an employee grade.</p>
