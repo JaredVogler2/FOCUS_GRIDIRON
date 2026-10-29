@@ -65,6 +65,31 @@ def team(team_id):
     return jsonify(data)
 
 
+@app.get("/api/teams/<team_id>/card")
+def team_card_detail(team_id):
+    data = get_league().team_card(team_id, week_arg())
+    if data is None:
+        return jsonify(error="Unknown team"), 404
+    return jsonify(data)
+
+
+@app.get("/api/attributes")
+def attribute_catalog():
+    from gridiron.evidence import METRIC_CATALOG
+    from gridiron.ratings import WEIGHTS, POSITION_WEIGHTS
+    attributes = {
+        key: dict(label=spec["label"], definition=spec["definition"],
+                  weight=WEIGHTS[key],
+                  measures=[dict(key=m[0], label=m[1], weight=m[2],
+                                 numerator_label=m[3], denominator_label=m[4])
+                            for m in spec["measures"]])
+        for key, spec in METRIC_CATALOG.items()
+    }
+    return jsonify(attributes=attributes, position_weights=POSITION_WEIGHTS,
+                   score_formula="OVR = Σ(normalized attribute × attribute weight)",
+                   source="SYNTHETIC", official_employment_grade=False)
+
+
 @app.get("/api/players/<player_id>")
 def player(player_id):
     data = get_league().player(player_id, week_arg())
