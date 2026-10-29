@@ -191,8 +191,16 @@ function fieldSvg(game, play) {
   function dot(pos, team, alpha){
     const p=pos.p;
     const active=play.actor===p.player_id || play.target===p.player_id;
-    return `<g><circle cx="${pos.x}" cy="${pos.y}" r="${active?19:14}" fill="${esc(team.color)}" stroke="${active?'#fff4b0':'#09261c'}" stroke-width="${active?4:2}" opacity="${alpha}"/>
-      <text x="${pos.x}" y="${pos.y+4.3}" text-anchor="middle" font-size="11" font-family="Arial" font-weight="bold" fill="#10261e">${p.number??p.slot}</text></g>`;
+    const r=active?19:14;
+    // A dark halo plus white outline makes every franchise visible on green
+    // turf; per-color black/white numbers remain readable on each jersey.
+    return `<g opacity="${alpha}">
+      <circle cx="${pos.x}" cy="${pos.y}" r="${r+4}" fill="#081E18"/>
+      <circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${teamColor(team)}"
+        stroke="${active?'#FFF1A8':'#FFFFFF'}" stroke-width="${active?3.5:2.5}"/>
+      <text x="${pos.x}" y="${pos.y+4.5}" text-anchor="middle" font-size="12"
+        font-family="Arial" font-weight="900" fill="${teamInk(team)}">${p.number??p.slot}</text>
+      </g>`;
   }
   return `<svg viewBox="0 0 1000 525" role="img" aria-label="Top-down 2D football play: ${esc(o.name)} attacking ${esc(d.name)}, ball on the ${play.yard_line} yard line.">
     <defs><pattern id="grass" width="80" height="525" patternUnits="userSpaceOnUse"><rect width="80" height="525" fill="#215e41"/><rect width="40" height="525" fill="#276747"/></pattern></defs>
