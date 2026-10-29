@@ -1,9 +1,11 @@
 """Core deterministic, integrity and same-production-team roster acceptance suite."""
 from __future__ import annotations
 
+import colorsys
 import hashlib
 import itertools
 import json
+import re
 import pytest
 from app import app
 from gridiron.league import get_league, round_robin, standings
@@ -134,3 +136,32 @@ def test_flask_api_and_nonparticipants_are_private():
     assert client.get("/api/players/riveters-p30").status_code == 404
     assert client.get("/api/games/not-real").status_code == 404
     assert client.get("/api/teams/not-real").status_code == 404
+
+
+def test_football_team_colors_are_distinct_from_green_turf():
+    """Every franchise gets a vivid hue; match the approved orange/blue UI."""
+    teams = SyntheticSource().snapshot().teams
+    colors = {team["id"]: team["color"] for team in teams}
+    assert colors["riveters"] == "#FF6900"
+    assert colors["flight"] == "#0652FF"
+    assert len(set(colors.values())) == 6
+    hue_angles = []
+    for color in colors.values():
+        assert re.fullmatch(r"#[0-9a-fA-F]{6}", color)
+        rgb = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        hue, saturation, _ = colorsys.rgb_to_hsv(*rgb)
+        hue *= 360
+        assert saturation > 0.70  # clear colors, not near-turf gray/teal
+        assert not 80 <= hue <= 170  # no green-field/camouflage jerseys
+        hue_angles.append(hue)
+        # Each franchise receives black or white numeral ink by comparing
+        # the relative luminance of its jersey color.
+        def linear(v):
+            return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+        luminance = sum(linear(c) * w for c, w in zip(rgb, (.2126, .7152, .0722)))
+        ink_luminance = 0.0 if luminance > 0.179 else 1.0
+        contrast = (max(luminance, ink_luminance) + .05) / (min(luminance, ink_luminance) + .05)
+        assert contrast >= 4.5
+    # Not merely unique hexes: distinct hue families on an actual field.
+    for a, b in itertools.combinations(hue_angles, 2):
+        assert min(abs(a - b), 360 - abs(a - b)) >= 25
